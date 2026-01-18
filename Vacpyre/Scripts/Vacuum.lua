@@ -6,6 +6,7 @@ function Vacuum:Create()
 
     self.sucking = false
     self.suckedObject = nil
+    self.traceTarget = nil
 
 end
 
@@ -18,25 +19,32 @@ function Vacuum:GatherProperties()
 
 end
 
+function Vacuum:Start()
+
+    self.hud = self:GetRoot():FindChild("Hud")
+end
+
 function Vacuum:Tick(deltaTime)
     
     local camera = self.world:GetActiveCamera()
     local suckTarget = nil
 
-    if (self.sucking and not self.suckedObject) then
+    self.traceTarget = nil
+    if (camera) then
+        -- Trace directly forward from camera and check first thing hit
+        local rayStart = camera:GetWorldPosition()
+        local rayEnd = rayStart + camera:GetForwardVector() * 100.0
+        local colMask = ~(VacpyreCollision.Player)
 
-        if (camera) then
-            -- Trace directly forward from camera and check first thing hit
-            local rayStart = camera:GetWorldPosition()
-            local rayEnd = rayStart + camera:GetForwardVector() * 100.0
-            local colMask = ~(VacpyreCollision.Player)
+        local res = self.world:RayTest(rayStart, rayEnd, colMask)
 
-            local res = self.world:RayTest(rayStart, rayEnd, colMask)
-
-            if (res.hitNode and res.hitNode:HasTag("Red")) then
-                suckTarget = res.hitNode
-            end
+        if (res.hitNode and res.hitNode:HasTag("Red")) then
+            self.traceTarget = res.hitNode
         end
+    end
+
+    if (self.sucking and not self.suckedObject) then
+        suckTarget = self.traceTarget
     end
 
     if (suckTarget) then
@@ -56,6 +64,9 @@ function Vacuum:Tick(deltaTime)
         end
     end
 
+    -- Check if our sucked object is penetrating the environment.
+    -- If so, release it
+    --local res = self.world:RayTest()
 end
 
 function Vacuum:EnableSuck(suck)
@@ -63,14 +74,7 @@ function Vacuum:EnableSuck(suck)
     self.sucking = suck
 
     if (not suck and self.suckedObject) then
-        -- Shoot object
-        self.suckedObject:EnablePhysics(true)
-        self.suckedObject:Attach(self:GetRoot(), true)
-
-        local launchSpeed = 30.0
-        self.suckedObject:SetLinearVelocity(self.suckPivot:GetForwardVector() * launchSpeed)
-
-        self.suckedObject = nil
+        self:ReleaseSuckedObject()
     end
 
 end
@@ -78,12 +82,27 @@ end
 function Vacuum:SuckObject(obj)
 
     obj:EnablePhysics(false)
+    obj:EnableCollision(false)
     obj:Attach(self.suckPivot)
     local bounds = obj:GetBounds()
     LogTable(bounds)
     obj:SetPosition(Vec(0,0,-bounds.radius))
     obj:SetRotation(Vec())
     self.suckedObject = obj
+
+end
+
+function Vacuum:ReleaseSuckedObject()
+
+        -- Shoot object
+        self.suckedObject:EnablePhysics(true)
+        self.suckedObject:EnableCollision(true)
+        self.suckedObject:Attach(self:GetRoot(), true)
+
+        local launchSpeed = 30.0
+        self.suckedObject:SetLinearVelocity(self.suckPivot:GetForwardVector() * launchSpeed)
+
+        self.suckedObject = nil
 
 end
 
