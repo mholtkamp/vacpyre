@@ -6,10 +6,6 @@ function Vacuum:Create()
 
     self.sucking = false
     self.suckedObject = nil
-    self.lastSuckTarget = nil
-    self.lastSuckGraceTime = 0.0
-    self.suckGracePeriod = 0.3
-    self.suckGraceTime = 0.0
 
 end
 
@@ -27,8 +23,6 @@ function Vacuum:Tick(deltaTime)
     local camera = self.world:GetActiveCamera()
     local suckTarget = nil
 
-    self.lastSuckGraceTime = math.max(self.lastSuckGraceTime - deltaTime, 0.0)
-
     if (self.sucking and not self.suckedObject) then
 
         if (camera) then
@@ -41,21 +35,13 @@ function Vacuum:Tick(deltaTime)
 
             if (res.hitNode and res.hitNode:HasTag("Red")) then
                 suckTarget = res.hitNode
-                self.lastSuckTarget = suckTarget
-                self.lastSuckGraceTime = self.suckGracePeriod
             end
-        end
-
-        -- If the crosshair goes slightly off the last target, still use it for a brief period
-        if (not suckTarget and
-            self.lastSuckTarget and
-            self.lastSuckGraceTime > 0.0) then
-
-            suckTarget = self.lastSuckTarget
         end
     end
 
     if (suckTarget) then
+
+        suckTarget.lastSuckTime = Engine.GetElapsedTime()
 
         local toCamera = camera:GetWorldPosition() - suckTarget:GetWorldPosition()
         local suckDir = toCamera:Normalize()
@@ -66,13 +52,7 @@ function Vacuum:Tick(deltaTime)
         suckTarget:AddForce(force)
 
         if (distance < 5.0) then
-            suckTarget:EnablePhysics(false)
-            suckTarget:Attach(self.suckPivot)
-            local bounds = suckTarget:GetBounds()
-            LogTable(bounds)
-            suckTarget:SetPosition(Vec(0,0,-bounds.radius))
-            suckTarget:SetRotation(Vec())
-            self.suckedObject = suckTarget
+            self:SuckObject(suckTarget)
         end
     end
 
@@ -93,9 +73,28 @@ function Vacuum:EnableSuck(suck)
         self.suckedObject = nil
     end
 
-    if (not suck) then
-        self.lastSuckTarget = nil
-        self.lastSuckGraceTime = 0.0
-    end
+end
 
+function Vacuum:SuckObject(obj)
+
+    obj:EnablePhysics(false)
+    obj:Attach(self.suckPivot)
+    local bounds = obj:GetBounds()
+    LogTable(bounds)
+    obj:SetPosition(Vec(0,0,-bounds.radius))
+    obj:SetRotation(Vec())
+    self.suckedObject = obj
+
+end
+
+function Vacuum:BeginOverlap(this, other)
+
+    if (self.sucking and 
+        not self.suckedObject and
+        other:HasTag("Red") and
+        other.lastSuckTime and
+        (Engine.GetElapsedTime() - other.lastSuckTime < 0.5)) then
+
+        self:SuckObject(other)
+    end
 end
