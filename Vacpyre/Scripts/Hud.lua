@@ -26,7 +26,7 @@ end
 
 function Hud:Tick(deltaTime)
 
-    local traceTarget = self.vacuum.traceTarget
+    local traceTarget = self.vacuum.traceTarget or self.vacuum.suckedObject
 
     local crosshairColor = traceTarget and Vec(1,0,0,1) or Vec(1,1,1,1)
 
