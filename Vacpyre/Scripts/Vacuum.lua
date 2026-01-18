@@ -15,7 +15,9 @@ function Vacuum:GatherProperties()
     return
     {
         { name = "suckPivot", type = DatumType.Node },
-        { name = "particle", type = DatumType.Node },
+        { name = "suckParticle", type = DatumType.Node },
+        { name = "blowParticle", type = DatumType.Node },
+
     }
 
 end
@@ -65,7 +67,7 @@ function Vacuum:Tick(deltaTime)
         end
     end
 
-    self.particle:EnableEmission(self.sucking and not self.suckedObject)
+    self.suckParticle:EnableEmission(self.sucking and not self.suckedObject)
 
     -- Check if our sucked object is penetrating the environment.
     -- If so, release it
@@ -78,6 +80,7 @@ function Vacuum:EnableSuck(suck)
 
     if (not suck and self.suckedObject) then
         self:ReleaseSuckedObject()
+        self.blowParticle:EnableEmission(true)
     end
 
 end
