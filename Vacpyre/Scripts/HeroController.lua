@@ -35,6 +35,7 @@ function HeroController:Create()
     self.grounded = false
     self.extVelocity = Vec()
     self.moveVelocity = Vec()
+    self.aiming = false
 
 end
 
@@ -103,6 +104,8 @@ end
 function HeroController:UpdateInput(deltaTime)
 
     if (self.enableControl) then
+
+        self.aiming = Input.IsGamepadDown(Gamepad.L1) or Input.IsGamepadDown(Gamepad.L2) or Input.IsMouseDown(Mouse.Right)
 
         local tank = self.enableTankControls
 
@@ -268,7 +271,11 @@ end
 
 function HeroController:UpdateCamera(deltaTime)
 
-    local lookRot = self.lookVec * self.lookSpeed
+    local lookSpeed = self.lookSpeed
+    if (self.aiming) then
+        lookSpeed = lookSpeed * 0.5
+    end
+    local lookRot = self.lookVec * lookSpeed
 
     -- Adjust yaw of root node
     local rootRot = self.collider:GetRotation()
@@ -280,6 +287,14 @@ function HeroController:UpdateCamera(deltaTime)
     camRot.x = camRot.x - lookRot.y * deltaTime
     camRot.x = Math.Clamp(camRot.x, -89.9, 89.9)
     self.camera:SetRotation(camRot)
+
+    -- Update FoV for aim
+    local defaultFov = 70.0
+    local aimFov = 40.0
+    local targetFov = self.aiming and aimFov or defaultFov
+    local fov = self.camera:GetFieldOfView()
+    fov = Math.Approach(fov, targetFov, 200.0, deltaTime)
+    self.camera:SetFieldOfView(fov)
 
 end
 

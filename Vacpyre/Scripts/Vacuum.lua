@@ -100,9 +100,7 @@ function Vacuum:MustDropObject(obj)
     local ignoreObjects = { obj }
     local res = self.world:RayTest(rayStart, rayEnd, colMask, ignoreObjects)
 
-    if (res.hitNode) then
-        Log.Debug("HIT: " .. res.hitNode:GetName())
-    end
+    local color = res.hitNode and Vec(1,0,0,1) or Vec(0,1,0,1)
 
     return (res.hitNode ~= nil)
 end
@@ -136,6 +134,18 @@ function Vacuum:ReleaseSuckedObject(launchSpeed)
         self.suckedObject:EnablePhysics(true)
         self.suckedObject:SetCollisionMask(0xff)
         self.suckedObject:Attach(self:GetRoot(), true)
+
+        -- Trace from camera, to current object pos.
+        -- If trace fails, spawn it from camera instead.
+        -- This is an attempt to stop objects going through walls
+        local camera = self.world:GetActiveCamera()
+        local rayStart = camera:GetWorldPosition()
+        local rayEnd = self.suckedObject:GetWorldPosition()
+        local res = self.world:RayTest(rayStart, rayEnd, VacpyreCollision.Environment)
+        if (res.hitNode) then
+            self.suckedObject:SetWorldPosition(camera:GetWorldPosition())
+        end
+
         self.suckedObject:SetLinearVelocity(self.suckPivot:GetForwardVector() * launchSpeed)
         self.suckedObject.lastBlowTime = Engine.GetElapsedTime()
 
