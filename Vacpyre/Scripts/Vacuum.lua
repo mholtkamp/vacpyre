@@ -5,6 +5,11 @@ function Vacuum:Create()
     self.suckPivot = nil
 
     self.sucking = false
+    self.suckedObject = nil
+    self.lastSuckTarget = nil
+    self.lastSuckGraceTime = 0.0
+    self.suckGracePeriod = 0.3
+    self.suckGraceTime = 0.0
 
 end
 
@@ -19,13 +24,14 @@ end
 
 function Vacuum:Tick(deltaTime)
     
-    if (self.sucking) then
-        Log.Debug("SUCK")
+    local camera = self.world:GetActiveCamera()
+    local suckTarget = nil
 
-        local camera = self.world:GetActiveCamera()
+    self.lastSuckGraceTime = math.max(self.lastSuckGraceTime - deltaTime, 0.0)
+
+    if (self.sucking and not self.suckedObject) then
 
         if (camera) then
-            Log.Debug("CAMERA")
             -- Trace directly forward from camera and check first thing hit
             local rayStart = camera:GetWorldPosition()
             local rayEnd = rayStart + camera:GetForwardVector() * 100.0
@@ -33,23 +39,41 @@ function Vacuum:Tick(deltaTime)
 
             local res = self.world:RayTest(rayStart, rayEnd, colMask)
 
-            Log.Debug("HIT: " .. (res.hitNode and res.hitNode:GetName() or tostring(res.hitNode)))
-
             if (res.hitNode and res.hitNode:HasTag("Red")) then
-                Log.Debug("TARGET: " .. res.hitNode:GetName())
-                self.suckTarget = res.hitNode
-            else
-                self.suckTarget = nil
+                suckTarget = res.hitNode
+                self.lastSuckTarget = suckTarget
+                self.lastSuckGraceTime = self.suckGracePeriod
             end
         end
-    else
-        self.suckTarget = nil
+
+        -- If the crosshair goes slightly off the last target, still use it for a brief period
+        if (not suckTarget and
+            self.lastSuckTarget and
+            self.lastSuckGraceTime > 0.0) then
+
+            suckTarget = self.lastSuckTarget
+        end
     end
 
-    if (self.suckTarget) then
+    if (suckTarget) then
 
-        local force = 100.0 * (self.suckPivot:GetWorldPosition() - self.suckTarget:GetWorldPosition()):Normalize()
-        self.suckTarget:AddForce(force)
+        local toCamera = camera:GetWorldPosition() - suckTarget:GetWorldPosition()
+        local suckDir = toCamera:Normalize()
+        local distance = toCamera:Length()
+        Log.Debug("Dist = " .. tostring(distance))
+        local forceMag = Math.MapClamped(distance, 0, 100.0, 100.0, 10.0)
+        local force = forceMag * suckDir
+        suckTarget:AddForce(force)
+
+        if (distance < 5.0) then
+            suckTarget:EnablePhysics(false)
+            suckTarget:Attach(self.suckPivot)
+            local bounds = suckTarget:GetBounds()
+            LogTable(bounds)
+            suckTarget:SetPosition(Vec(0,0,-bounds.radius))
+            suckTarget:SetRotation(Vec())
+            self.suckedObject = suckTarget
+        end
     end
 
 end
@@ -57,5 +81,21 @@ end
 function Vacuum:EnableSuck(suck)
 
     self.sucking = suck
+
+    if (not suck and self.suckedObject) then
+        -- Shoot object
+        self.suckedObject:EnablePhysics(true)
+        self.suckedObject:Attach(self:GetRoot(), true)
+
+        local launchSpeed = 30.0
+        self.suckedObject:SetLinearVelocity(self.suckPivot:GetForwardVector() * launchSpeed)
+
+        self.suckedObject = nil
+    end
+
+    if (not suck) then
+        self.lastSuckTarget = nil
+        self.lastSuckGraceTime = 0.0
+    end
 
 end
