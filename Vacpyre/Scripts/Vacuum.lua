@@ -3,6 +3,7 @@ Vacuum = {}
 function Vacuum:Create()
 
     self.suckPivot = nil
+    self.launchSpeed = 30.0
 
     self.sucking = false
     self.suckedObject = nil
@@ -24,7 +25,6 @@ end
 
 function Vacuum:Start()
 
-    self.hud = self:GetRoot():FindChild("Hud")
 end
 
 function Vacuum:Tick(deltaTime)
@@ -50,6 +50,18 @@ function Vacuum:Tick(deltaTime)
         suckTarget = self.traceTarget
     end
 
+    -- Disallow sucking targets too soon after blowing
+    if (suckTarget and suckTarget.lastBlowTime) then
+        local timeSinceBlow = Engine.GetElapsedTime() - suckTarget.lastBlowTime
+        if (timeSinceBlow < 0.3) then
+            suckTarget = nil
+        end
+    end
+
+    if (suckTarget and self:MustDropObject(suckTarget)) then
+        suckTarget = nil
+    end
+
     if (suckTarget) then
 
         suckTarget.lastSuckTime = Engine.GetElapsedTime()
@@ -57,7 +69,6 @@ function Vacuum:Tick(deltaTime)
         local toCamera = camera:GetWorldPosition() - suckTarget:GetWorldPosition()
         local suckDir = toCamera:Normalize()
         local distance = toCamera:Length()
-        Log.Debug("Dist = " .. tostring(distance))
         local forceMag = Math.MapClamped(distance, 0, 100.0, 100.0, 10.0)
         local force = forceMag * suckDir
         suckTarget:AddForce(force)
@@ -71,7 +82,29 @@ function Vacuum:Tick(deltaTime)
 
     -- Check if our sucked object is penetrating the environment.
     -- If so, release it
-    --local res = self.world:RayTest()
+    if (self.suckedObject) then
+        if (self:MustDropObject(self.suckedObject)) then
+            self:ReleaseSuckedObject(0.0)
+        end
+    end
+end
+
+function Vacuum:MustDropObject(obj)
+
+    local camera = self.world:GetActiveCamera()
+
+    local rayStart = camera:GetWorldPosition()
+    local rayEnd = self.suckPivot:GetWorldPosition() + self.suckPivot:GetForwardVector() * obj:GetBounds().radius -- obj:GetWorldPosition()
+    rayEnd = rayEnd + (rayEnd - rayStart):Normalize() * 1.0
+    local colMask = ~(VacpyreCollision.Player | VacpyreCollision.Projectile)
+    local ignoreObjects = { obj }
+    local res = self.world:RayTest(rayStart, rayEnd, colMask, ignoreObjects)
+
+    if (res.hitNode) then
+        Log.Debug("HIT: " .. res.hitNode:GetName())
+    end
+
+    return (res.hitNode ~= nil)
 end
 
 function Vacuum:EnableSuck(suck)
@@ -79,7 +112,7 @@ function Vacuum:EnableSuck(suck)
     self.sucking = suck
 
     if (not suck and self.suckedObject) then
-        self:ReleaseSuckedObject()
+        self:ReleaseSuckedObject(self.launchSpeed)
         self.blowParticle:EnableEmission(true)
     end
 
@@ -88,25 +121,23 @@ end
 function Vacuum:SuckObject(obj)
 
     obj:EnablePhysics(false)
-    obj:EnableCollision(false)
+    obj:SetCollisionMask(VacpyreCollision.Projectile)
     obj:Attach(self.suckPivot)
     local bounds = obj:GetBounds()
-    LogTable(bounds)
     obj:SetPosition(Vec(0,0,-bounds.radius))
     obj:SetRotation(Vec())
     self.suckedObject = obj
 
 end
 
-function Vacuum:ReleaseSuckedObject()
+function Vacuum:ReleaseSuckedObject(launchSpeed)
 
         -- Shoot object
         self.suckedObject:EnablePhysics(true)
-        self.suckedObject:EnableCollision(true)
+        self.suckedObject:SetCollisionMask(0xff)
         self.suckedObject:Attach(self:GetRoot(), true)
-
-        local launchSpeed = 30.0
         self.suckedObject:SetLinearVelocity(self.suckPivot:GetForwardVector() * launchSpeed)
+        self.suckedObject.lastBlowTime = Engine.GetElapsedTime()
 
         self.suckedObject = nil
 
