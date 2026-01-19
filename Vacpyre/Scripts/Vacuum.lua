@@ -3,12 +3,14 @@ Vacuum = {}
 function Vacuum:Create()
 
     self.suckPivot = nil
-    self.launchSpeed = 30.0
+    self.launchSpeed = 60.0
 
     self.sucking = false
     self.suckedObject = nil
     self.traceTarget = nil
     self.aiming = false
+    self.charge = 0.0
+    self.chargeSpeed = 0.5
 end
 
 function Vacuum:GatherProperties()
@@ -18,6 +20,7 @@ function Vacuum:GatherProperties()
         { name = "suckPivot", type = DatumType.Node },
         { name = "suckParticle", type = DatumType.Node },
         { name = "blowParticle", type = DatumType.Node },
+        { name = "chargeSpeed", type = DatumType.Float },
     }
 
 end
@@ -107,6 +110,12 @@ function Vacuum:Tick(deltaTime)
         end
         matInst:SetBlendMode(blendMode)
     end
+
+    -- Increase blow charge if sucking object
+    if (self.suckedObject) then
+        self.charge = self.charge + self.chargeSpeed * deltaTime
+        self.charge = Math.Clamp(self.charge, 0, 1)
+    end
 end
 
 function Vacuum:MustDropObject(obj)
@@ -130,7 +139,8 @@ function Vacuum:EnableSuck(suck)
     self.sucking = suck
 
     if (not suck and self.suckedObject) then
-        self:ReleaseSuckedObject(self.launchSpeed)
+        local launchSpeed = self.launchSpeed * self.charge
+        self:ReleaseSuckedObject(launchSpeed)
         self.blowParticle:EnableEmission(true)
     end
 
@@ -177,6 +187,8 @@ function Vacuum:ReleaseSuckedObject(launchSpeed)
         self.suckedObject.lastBlowTime = Engine.GetElapsedTime()
         self.suckedObject.matInst:SetOpacity(1.0)
         self.suckedObject.matInst:SetBlendMode(BlendMode.Opaque)
+
+        self.charge = 0.0
 
         self.suckedObject = nil
 
