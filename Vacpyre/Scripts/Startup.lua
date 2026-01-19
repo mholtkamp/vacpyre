@@ -3,7 +3,7 @@ VacpyreCollision =
 {
     Default = 0x01,
     Environment = 0x02,
-    Player = 0x04,
+    Player = 0x04, Hero = 0x04,
     Red = 0x08,
     Projectile = 0x10,
     Enemy = 0x20,

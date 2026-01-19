@@ -66,6 +66,8 @@ end
 function HeroController:Start()
 
     self:AddTag("Controller")
+    self.hero = self:GetParent()
+    self.hero.controller = self
 
     Input.LockCursor(true)
     Input.TrapCursor(true)
