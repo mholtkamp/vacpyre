@@ -106,6 +106,7 @@ function HeroController:UpdateInput(deltaTime)
     if (self.enableControl) then
 
         self.aiming = Input.IsGamepadDown(Gamepad.L1) or Input.IsGamepadDown(Gamepad.L2) or Input.IsMouseDown(Mouse.Right)
+        self.vacuum.aiming = self.aiming
 
         local tank = self.enableTankControls
 

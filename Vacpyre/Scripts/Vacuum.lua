@@ -8,7 +8,7 @@ function Vacuum:Create()
     self.sucking = false
     self.suckedObject = nil
     self.traceTarget = nil
-
+    self.aiming = false
 end
 
 function Vacuum:GatherProperties()
@@ -18,12 +18,12 @@ function Vacuum:GatherProperties()
         { name = "suckPivot", type = DatumType.Node },
         { name = "suckParticle", type = DatumType.Node },
         { name = "blowParticle", type = DatumType.Node },
-
     }
 
 end
 
 function Vacuum:Start()
+
 
 end
 
@@ -87,6 +87,27 @@ function Vacuum:Tick(deltaTime)
             self:ReleaseSuckedObject(0.0)
         end
     end
+
+    -- If we are aiming, then make the material transparent
+    if (self.suckedObject) then
+
+        local targetOpacity = 1.0
+        if (self.aiming) then
+            targetOpacity = 0.35
+        end
+
+        local matInst = self.suckedObject.matInst
+        local opacity = matInst:GetOpacity() 
+        opacity = Math.Approach(opacity, targetOpacity, 3.0, deltaTime)
+        matInst:SetOpacity(opacity)
+
+        local blendMode = BlendMode.Opaque
+        if (opacity < 1.0) then
+            Log.Debug("TRANS")
+            blendMode = BlendMode.Translucent
+        end
+        matInst:SetBlendMode(blendMode)
+    end
 end
 
 function Vacuum:MustDropObject(obj)
@@ -124,6 +145,13 @@ function Vacuum:SuckObject(obj)
     local bounds = obj:GetBounds()
     obj:SetPosition(Vec(0,0,-bounds.radius))
     obj:SetRotation(Vec())
+
+    -- Instantiate it's own material so we can make it transparent when aiming
+    if (not obj.matInst) then
+        local mesh = obj:GetChildByType("StaticMesh3D")
+        obj.matInst = mesh:InstantiateMaterial()
+    end
+
     self.suckedObject = obj
 
 end
@@ -148,6 +176,8 @@ function Vacuum:ReleaseSuckedObject(launchSpeed)
 
         self.suckedObject:SetLinearVelocity(self.suckPivot:GetForwardVector() * launchSpeed)
         self.suckedObject.lastBlowTime = Engine.GetElapsedTime()
+        self.suckedObject.matInst:SetOpacity(1.0)
+        self.suckedObject.matInst:SetBlendMode(BlendMode.Opaque)
 
         self.suckedObject = nil
 
