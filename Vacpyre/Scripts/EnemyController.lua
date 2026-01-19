@@ -5,6 +5,8 @@ function EnemyController:Create()
     -- Properties
     self.moveSpeed = 5.0
     self.collider = nil
+    self.hurtOnTouch = false
+    self.approachDistance = 0.0
 
     -- State
     self.moveDir = Vec()
@@ -21,6 +23,8 @@ function EnemyController:GatherProperties()
         { name = "mesh", type = DatumType.Node },
         { name = "moveSpeed", type = DatumType.Float },
         { name = "flying", type = DatumType.Bool },
+        { name = "hurtOnTouch", type = DatumType.Bool },
+        { name = "approachDistance", type = DatumType.Float},
     }
 end
 
@@ -33,19 +37,33 @@ end
 
 function EnemyController:Tick(deltaTime)
 
-    self.moveTimer = math.max(self.moveTimer - deltaTime, 0.0)
-
-    if (self.moveTimer == 0.0) then
-        self.moveTimer = Math.RandRange(1.0, 3.0)
-        self.moveDir = Vector.Rotate(Vec(0,0,-1), Math.RandRange(0, 360.0), Vec(0, 1, 0))
-    end
-
     local meshFwd = self.mesh:GetForwardVector()
     local facingDot = Vector.Dot(self.moveDir, meshFwd)
     local moveSpeed = Math.MapClamped(facingDot, 0, 1.0, self.moveSpeed * 0.1, self.moveSpeed)
+
+    if (self.lineOfSight) then
+        local toHero = (self.hero:GetWorldPosition() - self.collider:GetWorldPosition())
+        toHero.y = 0.0
+        local dist = toHero:Length()
+        self.moveDir = toHero / dist
+
+        if (dist < self.approachDistance) then
+            moveSpeed = 0.0
+        end
+    else
+
+        self.moveTimer = math.max(self.moveTimer - deltaTime, 0.0)
+
+        if (self.moveTimer == 0.0) then
+            self.moveTimer = Math.RandRange(1.0, 3.0)
+            self.moveDir = Vector.Rotate(Vec(0,0,-1), Math.RandRange(0, 360.0), Vec(0, 1, 0))
+        end
+
+    end
+
     local sweepRes = self.collider:SweepToWorldPosition(self.collider:GetWorldPosition() + self.moveDir * moveSpeed * deltaTime)
 
-    if (sweepRes.hitNode) then
+    if (sweepRes.hitNode and not self.lineOfSight) then
         -- Hit something, so turn around
         self.moveDir = Vector.Rotate(self.moveDir, Math.RandRange(130, 230), Vec(0, 1, 0))
         self.moveTimer = Math.RandRange(1.0, 3.0)
