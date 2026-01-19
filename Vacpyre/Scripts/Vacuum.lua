@@ -103,7 +103,6 @@ function Vacuum:Tick(deltaTime)
 
         local blendMode = BlendMode.Opaque
         if (opacity < 1.0) then
-            Log.Debug("TRANS")
             blendMode = BlendMode.Translucent
         end
         matInst:SetBlendMode(blendMode)
