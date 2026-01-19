@@ -10,6 +10,7 @@ function EnemyController:Create()
     self.moveDir = Vec()
     self.moveTimer = 0.0
     self.heroNearby = false
+    self.hero = nil
 end
 
 function EnemyController:GatherProperties()

@@ -7,6 +7,11 @@ function Hud:Create()
     self.crosshair = nil
     self.chargeBar = nil
     self.chargeFg = nil
+    self.jelly = nil
+
+    self.jellyFlashDuration = 0.2
+    self.jellyFlashTime = 0.0
+    self.jellyOpacity = 0.5
 
 end
 
@@ -19,6 +24,8 @@ function Hud:Start()
 
     self.chargeBar = self:FindChild("ChargeBar", true)
     self.chargeFg = self:FindChild("ChargeFg", true)
+
+    self.jelly = self:FindChild("Jelly", true)
 
     local platform = Engine.GetPlatform()
     if (platform == "3DS") then
@@ -61,6 +68,26 @@ function Hud:Tick(deltaTime)
 
     self.chargeFg:SetWidthRatio(chargeAlpha)
 
+    -- Update jelly flash if damaged
+    if (self.jellyFlashTime > 0.0) then
+        self.jellyFlashTime = self.jellyFlashTime - deltaTime
 
+        local opacity = 0.0
+        local fadeRatio = 0.8
+        if (self.jellyFlashTime > fadeRatio * self.jellyFlashDuration) then
+            opacity = Math.MapClamped(self.jellyFlashTime, self.jellyFlashDuration, self.jellyFlashDuration * fadeRatio, 0.0, 1.0)
+        else
+            opacity = Math.MapClamped(self.jellyFlashTime, self.jellyFlashDuration * fadeRatio, 0, 1.0, 0.0)
+        end
+        opacity = opacity * self.jellyOpacity
+        self.jelly:SetOpacityFloat(opacity)
+    end
+end
+
+function Hud:OnDamage()
+
+    self.jellyFlashTime = self.jellyFlashDuration
+    self.jelly:SetVisible(true)
+    self.jelly:SetOpacityFloat(0.0)
 
 end
