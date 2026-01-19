@@ -25,6 +25,7 @@ function EnemyController:GatherProperties()
         { name = "flying", type = DatumType.Bool },
         { name = "hurtOnTouch", type = DatumType.Bool },
         { name = "approachDistance", type = DatumType.Float},
+        { name = "deathParticle", type = DatumType.Asset},
     }
 end
 
@@ -93,5 +94,16 @@ function EnemyController:Tick(deltaTime)
             self.lineOfSight = (rayRes.hitNode == self.hero)
             --Renderer.AddDebugLine(rayStart, rayEnd, self.lineOfSight  and Vec(0,1,0,1) or Vec(1,0,0,1), 5.0)
         end
+    end
+end
+
+function EnemyController:OnCollision(this, other)
+
+    if (this == self.enemy and
+        other:HasTag("Red") and
+        other:GetLinearVelocity():Length() > 5.0) then
+
+        self.world:SpawnParticle(self.deathParticle, self.enemy:GetWorldPosition())
+        self.enemy:Doom()
     end
 end

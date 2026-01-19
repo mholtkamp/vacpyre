@@ -54,3 +54,11 @@ function Drone:Tick(deltaTime)
         end
     end
 end
+
+function Drone:OnCollision(this, other)
+
+    if (self.controller) then
+        self.controller:OnCollision(this, other)
+    end
+
+end
