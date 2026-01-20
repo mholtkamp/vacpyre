@@ -7,6 +7,7 @@ VacpyreCollision =
     Red = 0x08,
     Projectile = 0x10,
     Enemy = 0x20,
+    Barrier = 0x40,
 }
 
 function LogTable(tbl, indent)

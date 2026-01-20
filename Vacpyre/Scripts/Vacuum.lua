@@ -32,6 +32,11 @@ end
 
 function Vacuum:Tick(deltaTime)
     
+    --if (self.suckedObject and not self.suckedObject:IsValid()) then
+    -- if (not Node.IsValid(self.suckedObject)) then
+    --     self.suckedObject = nil
+    -- end
+
     local camera = self.world:GetActiveCamera()
     local suckTarget = nil
 
@@ -40,7 +45,7 @@ function Vacuum:Tick(deltaTime)
         -- Trace directly forward from camera and check first thing hit
         local rayStart = camera:GetWorldPosition()
         local rayEnd = rayStart + camera:GetForwardVector() * 100.0
-        local colMask = ~(VacpyreCollision.Player)
+        local colMask = ~(VacpyreCollision.Player | VacpyreCollision.Barrier)
 
         local res = self.world:RayTest(rayStart, rayEnd, colMask)
 
@@ -125,7 +130,7 @@ function Vacuum:MustDropObject(obj)
     local rayStart = camera:GetWorldPosition()
     local rayEnd = self.suckPivot:GetWorldPosition() + self.suckPivot:GetForwardVector() * obj:GetBounds().radius -- obj:GetWorldPosition()
     rayEnd = rayEnd + (rayEnd - rayStart):Normalize() * 1.0
-    local colMask = ~(VacpyreCollision.Player | VacpyreCollision.Projectile)
+    local colMask = ~(VacpyreCollision.Player | VacpyreCollision.Projectile | VacpyreCollision.Barrier)
     local ignoreObjects = { obj }
     local res = self.world:RayTest(rayStart, rayEnd, colMask, ignoreObjects)
 
@@ -149,7 +154,7 @@ end
 function Vacuum:SuckObject(obj)
 
     obj:EnablePhysics(false)
-    obj:SetCollisionMask(VacpyreCollision.Projectile)
+    obj:SetCollisionMask(VacpyreCollision.Projectile | VacpyreCollision.Barrier)
     obj:Attach(self.suckPivot)
     local bounds = obj:GetBounds()
     obj:SetPosition(Vec(0,0,-bounds.radius))
@@ -161,12 +166,16 @@ function Vacuum:SuckObject(obj)
         obj.matInst = mesh:InstantiateMaterial()
     end
 
+    obj:ConnectSignal("OnDestroy", self, function() self.suckedObject = nil end)
+
+    self.charge = 0.0
     self.suckedObject = obj
 
 end
 
 function Vacuum:ReleaseSuckedObject(launchSpeed)
 
+    if (self.suckedObject and self.suckedObject:IsValid()) then
         -- Shoot object
         self.suckedObject:EnablePhysics(true)
         self.suckedObject:SetCollisionMask(0xff)
@@ -187,10 +196,12 @@ function Vacuum:ReleaseSuckedObject(launchSpeed)
         self.suckedObject.lastBlowTime = Engine.GetElapsedTime()
         self.suckedObject.matInst:SetOpacity(1.0)
         self.suckedObject.matInst:SetBlendMode(BlendMode.Opaque)
+        self.suckedObject:DisconnectSignal("OnDestroy", self)
+    end
 
-        self.charge = 0.0
+    self.charge = 0.0
 
-        self.suckedObject = nil
+    self.suckedObject = nil
 
 end
 
