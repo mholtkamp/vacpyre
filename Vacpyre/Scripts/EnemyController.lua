@@ -6,6 +6,7 @@ function EnemyController:Create()
     self.moveSpeed = 5.0
     self.collider = nil
     self.hurtOnTouch = false
+    self.handleMeshRotation = true
     self.approachDistance = 0.0
 
     -- State
@@ -24,6 +25,7 @@ function EnemyController:GatherProperties()
         { name = "moveSpeed", type = DatumType.Float },
         { name = "flying", type = DatumType.Bool },
         { name = "hurtOnTouch", type = DatumType.Bool },
+        { name = "handleMeshRotation", type = DatumType.Bool },
         { name = "approachDistance", type = DatumType.Float},
         { name = "deathParticle", type = DatumType.Asset},
     }
@@ -71,15 +73,17 @@ function EnemyController:Tick(deltaTime)
     end
 
     -- Rotate mesh toward move dir
-    local meshRot = self.mesh:GetWorldRotation()
-    local targRot = Math.VectorToRotation(self.moveDir)
-    meshRot.y = Math.ApproachAngle(meshRot.y, targRot.y, 400.0, deltaTime)
-    self.mesh:SetWorldRotation(meshRot)
+    if (self.handleMeshRotation) then
+        local meshRot = self.mesh:GetWorldRotation()
+        local targRot = Math.VectorToRotation(self.moveDir)
+        meshRot.y = Math.ApproachAngle(meshRot.y, targRot.y, 400.0, deltaTime)
+        self.mesh:SetWorldRotation(meshRot)
+    end
 
     -- If hero is nearby, and we are facing toward hero, then do a ray test
     -- to see if we should attack / pursue. The heroNearby flag will be set by
     -- by the ProximitySphere on the hero tree.
-    if (self.heroNearby) then
+    if (self.heroNearby or self.lineOfSight) then
 
         local toHero = (self.hero:GetWorldPosition() - self.mesh:GetWorldPosition()):Normalize()
         local dot = Vector.Dot(self.mesh:GetForwardVector(), toHero)

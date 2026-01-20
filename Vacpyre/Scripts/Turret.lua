@@ -41,7 +41,7 @@ function Turret:Tick(deltaTime)
 
     -- Rotate head mesh to look at hero
     if (self.controller.lineOfSight) then
-        self.headMesh:LookAt(self.controller.hero)
+        self.headMesh:LookAt(self.controller.hero:GetWorldPosition())
     else
         self.headMesh:SetRotation(Vec())
     end
