@@ -166,7 +166,7 @@ function Vacuum:SuckObject(obj)
         obj.matInst = mesh:InstantiateMaterial()
     end
 
-    obj:ConnectSignal("OnDestroy", self, function() self.suckedObject = nil end)
+    obj:ConnectSignal("OnDestroy", self, function() self.suckedObject = nil; self.charge = 0; end)
 
     self.charge = 0.0
     self.suckedObject = obj
