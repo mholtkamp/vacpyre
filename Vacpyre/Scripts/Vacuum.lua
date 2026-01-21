@@ -153,6 +153,9 @@ end
 
 function Vacuum:SuckObject(obj)
 
+    -- Cache it's original parent so we can attach it properly when shooting it back out
+    obj.origParent = obj:GetParent()
+
     obj:EnablePhysics(false)
     obj:SetCollisionMask(VacpyreCollision.Projectile | VacpyreCollision.Barrier)
     obj:Attach(self.suckPivot)
@@ -179,7 +182,7 @@ function Vacuum:ReleaseSuckedObject(launchSpeed)
         -- Shoot object
         self.suckedObject:EnablePhysics(true)
         self.suckedObject:SetCollisionMask(0xff)
-        self.suckedObject:Attach(self:GetRoot(), true)
+        self.suckedObject:Attach(self.suckedObject.origParent, true)
 
         -- Trace from camera, to current object pos.
         -- If trace fails, spawn it from camera instead.
