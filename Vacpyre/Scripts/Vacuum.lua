@@ -121,6 +121,24 @@ function Vacuum:Tick(deltaTime)
         self.charge = self.charge + self.chargeSpeed * deltaTime
         self.charge = Math.Clamp(self.charge, 0, 1)
     end
+
+    -- For the last-sucked object, perform sweeps to ensure that we don't penetrate walls
+    if (self.lastBlownObject) then
+        local curPos = self.lastBlownObject:GetWorldPosition()
+        local prevPos = self.lastBlownObjectPos
+
+        if (not curPos:Equals(prevPos)) then
+            local rayRes = self.world:RayTest(prevPos, curPos, self.lastBlownObject:GetCollisionMask(), {self.lastBlownObject})
+            if (rayRes.hitNode)  then
+                Log.Error("PENETRATED")
+                self.lastBlownObject:SetWorldPosition(prevPos)
+                curPos = prevPos
+                self.lastBlownObject:SetLinearVelocity(rayRes.hitNormal * self.lastBlownObject:GetLinearVelocity():Length() * 0.5)
+            end
+
+            self.lastBlownObjectPos = curPos
+        end
+    end
 end
 
 function Vacuum:MustDropObject(obj)
@@ -200,6 +218,9 @@ function Vacuum:ReleaseSuckedObject(launchSpeed)
         self.suckedObject.matInst:SetOpacity(1.0)
         self.suckedObject.matInst:SetBlendMode(BlendMode.Opaque)
         self.suckedObject:DisconnectSignal("OnDestroy", self)
+
+        self.lastBlownObject = self.suckedObject
+        self.lastBlownObjectPos = self.suckedObject:GetWorldPosition()
     end
 
     self.charge = 0.0
