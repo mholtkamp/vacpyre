@@ -1,0 +1,39 @@
+GateSwitch = {}
+
+function GateSwitch:Start()
+
+    self.activated = false
+    self.time = 0.0
+
+end
+
+function GateSwitch:GatherProperties()
+
+    return
+    {
+        { name = "gate", type = DatumType.Node },
+        { name = "light", type = DatumType.Node},
+    }
+end
+
+function GateSwitch:Tick(deltaTime)
+
+    self.time = self.time + deltaTime
+    local lightIntensity = math.abs(math.sin(self.time * 2.0))
+    self.light:SetIntensity(lightIntensity)
+
+end
+
+function GateSwitch:OnCollision(this, other)
+
+    if (not self.activated and
+        other:HasTag("Red")) then
+
+        Log.Debug("SWITCH HIT!")
+
+        self.gate:Open()
+        self.light:SetVisible(false)
+        self.activated = true
+    end
+
+end
