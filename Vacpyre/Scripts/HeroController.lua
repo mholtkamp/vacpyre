@@ -5,7 +5,7 @@
 
 HeroController = {}
 
-HeroController.kGroundingDot = 0.9
+HeroController.kGroundingDot = 0.7
 
 function HeroController:Create()
 

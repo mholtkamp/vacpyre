@@ -12,6 +12,7 @@ function Vacuum:Create()
     self.aiming = false
     self.charge = 0.0
     self.chargeSpeed = 0.5
+    self.suckRadius = 5.0
 end
 
 function Vacuum:GatherProperties()
@@ -50,7 +51,6 @@ function Vacuum:Tick(deltaTime)
 
         local res = self.world:RayTest(rayStart, rayEnd, colMask)
 
-        --Log.Debug("Vacuum --> " .. (res.hitNode and res.hitNode:GetName() or "nil"))
         if (res.hitNode and res.hitNode:HasTag("Red")) then
             self.traceTarget = res.hitNode
         end
@@ -68,8 +68,9 @@ function Vacuum:Tick(deltaTime)
         end
     end
 
-    if (suckTarget and self:MustDropObject(suckTarget, true)) then
-        Log.Error("DROOOOOOOP")
+    if (suckTarget and 
+        Vector.Distance(suckTarget:GetWorldPosition(), camera:GetWorldPosition()) < self.suckRadius and
+        self:MustDropObject(suckTarget, true)) then
         suckTarget = nil
     end
 
@@ -77,6 +78,10 @@ function Vacuum:Tick(deltaTime)
 
         if (suckTarget ~= self.lastSuckTarget) then
             suckTarget.lastPos = suckTarget:GetWorldPosition()
+        end
+
+        if (suckTarget.OnSuck) then
+            suckTarget:OnSuck()
         end
 
         suckTarget.lastSuckTime = Engine.GetElapsedTime()
@@ -90,8 +95,7 @@ function Vacuum:Tick(deltaTime)
 
         self:SafetyDepenetration(suckTarget)
 
-        if (distance < 5.0 and self:CanSuckObject(suckTarget)) then
-            Log.Error("DIST SUCK")
+        if (distance < self.suckRadius and self:CanSuckObject(suckTarget)) then
             self:SuckObject(suckTarget)
         end
     end
@@ -185,8 +189,6 @@ function Vacuum:MustDropObject(obj, ignoreChainlink)
     local ignoreObjects = { obj }
     local res = self.world:RayTest(rayStart, rayEnd, colMask, ignoreObjects)
 
-    local color = res.hitNode and Vec(1,0,0,1) or Vec(0,1,0,1)
-
     return (res.hitNode ~= nil)
 end
 
@@ -209,6 +211,7 @@ function Vacuum:SuckObject(obj)
 
     obj:EnablePhysics(false)
     obj:SetCollisionMask(VacpyreCollision.Projectile | VacpyreCollision.Barrier)
+    obj:SetCollisionGroup(VacpyreCollision.Sucked)
     obj:Attach(self.suckPivot)
     local bounds = obj:GetBounds()
     obj:SetPosition(Vec(0,0,-bounds.radius * obj:GetWorldScale().x))
@@ -232,9 +235,11 @@ end
 function Vacuum:ReleaseSuckedObject(launchSpeed)
 
     if (self.suckedObject and self.suckedObject:IsValid()) then
+
         -- Shoot object
         self.suckedObject:EnablePhysics(true)
         self.suckedObject:SetCollisionMask(0xff)
+        self.suckedObject:SetCollisionGroup(VacpyreCollision.Red)
         self.suckedObject:Attach(self.suckedObject.origParent, true)
 
         -- Trace from camera, to current object pos.
@@ -268,7 +273,7 @@ end
 function Vacuum:CanSuckObject(other)
 
     local rayRes = self.world:RayTest(other.lastPos, self:GetWorldPosition(), (VacpyreCollision.Environment | VacpyreCollision.Chainlink | VacpyreCollision.Default))
-    Renderer.AddDebugLine(other.lastPos, self:GetWorldPosition(), Vec(1,1,1,1), 5.0)
+    --Renderer.AddDebugLine(other.lastPos, self:GetWorldPosition(), Vec(1,1,1,1), 5.0)
     return (rayRes.hitNode == nil)
 
 end
@@ -282,7 +287,6 @@ function Vacuum:BeginOverlap(this, other)
         (Engine.GetElapsedTime() - other.lastSuckTime < 0.5) and
         self:CanSuckObject(other)) then
 
-        Log.Debug("OVERLAP SUCK")
         self:SuckObject(other)
     end
 
