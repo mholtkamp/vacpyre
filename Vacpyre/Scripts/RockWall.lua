@@ -64,7 +64,7 @@ function RockWall:OnCollision(this, other)
                 collider:EnableCollision(true)
                 collider:EnablePhysics(true)
                 collider:SetCollisionGroup(VacpyreCollision.Default)
-                collider:SetCollisionGroup(VacpyreCollision.Default | VacpyreCollision.Environment)
+                collider:SetCollisionGroup(VacpyreCollision.Default | VacpyreCollision.Environment | VacpyreCollision.Chainlink)
                 collider:Attach(self, false, i)
                 collider:SetWorldPosition(rock:GetWorldPosition())
                 local extents = rock:GetBounds().radius
