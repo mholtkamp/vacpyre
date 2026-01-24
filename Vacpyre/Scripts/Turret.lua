@@ -1,3 +1,5 @@
+Script.Require("EnemyUtils")
+
 Turret = {}
 
 function Turret:Create()
@@ -29,12 +31,7 @@ function Turret:Tick(deltaTime)
         
         self.shootTimer = self.shootTimer - deltaTime
         if (self.shootTimer <= 0.0) then
-            local proj = self.projectile:Instantiate()
-            self.world:GetRootNode():AddChild(proj)
-            local toHero = (self.controller.hero:GetWorldPosition() - self:GetWorldPosition()):Normalize()
-            proj:SetWorldPosition(self.firePivot:GetWorldPosition())
-            proj:Launch(toHero)
-
+            EnemyUtils.FireProjectile(self, self.controller.hero, self.projectile, true)
             self.shootTimer = self.shootDelay
         end
     end

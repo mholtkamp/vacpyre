@@ -359,3 +359,8 @@ function HeroController:SetGrounded(grounded)
         end
     end
 end
+
+function HeroController:GetVelocity()
+
+    return (self.extVelocity + self.moveVelocity)
+end

@@ -8,6 +8,7 @@ function Hero:Create()
     -- State
     self.hud = nil
     self.health = self.maxHealth
+    self.alive = true
 end
 
 function Hero:Start()
@@ -22,12 +23,23 @@ end
 
 function Hero:Damage(damage)
 
-    self.hud:OnDamage()
+    if (self.alive) then
+        self.hud:OnDamage()
 
-    self.health = Math.Clamp(self.health - damage, 0, self.maxHealth)
+        self.health = Math.Clamp(self.health - damage, 0, self.maxHealth)
 
-    if (self.health <= 0) then
-        Log.Error("DEAD")
+        if (self.health <= 0) then
+            self:Kill()
+        end
+    end
+
+end
+
+function Hero:Kill()
+
+    if (self.alive) then
+        Log.Error("KILL")
+        self.alive = false
     end
 
 end
