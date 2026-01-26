@@ -6,12 +6,23 @@ function RedObject:Create()
 
 end
 
+function RedObject:GatherProperties()
+
+    return
+    {
+        { name = "physActivated", type = DatumType.Bool },
+    }
+    
+end
+
 function RedObject:Start()
 
     self:SetCollisionGroup(VacpyreCollision.Red)
 
-    -- Wait until we get sucked, or something with physics collides with us
-    self:EnablePhysics(false)
+    if (not self.physActivated) then
+        -- Wait until we get sucked, or something with physics collides with us
+        self:EnablePhysics(false)
+    end
 
 end
 

@@ -272,6 +272,11 @@ end
 
 function Vacuum:CanSuckObject(other)
 
+    if (other:HasTag("Heavy") or
+        other:HasTag("Immobile")) then
+        return false
+    end
+
     local rayRes = self.world:RayTest(other.lastPos, self:GetWorldPosition(), (VacpyreCollision.Environment | VacpyreCollision.Chainlink | VacpyreCollision.Default))
     --Renderer.AddDebugLine(other.lastPos, self:GetWorldPosition(), Vec(1,1,1,1), 5.0)
     return (rayRes.hitNode == nil)

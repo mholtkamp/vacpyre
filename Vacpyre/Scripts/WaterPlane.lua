@@ -3,6 +3,7 @@ WaterPlane = {}
 function WaterPlane:Create()
 
     self.uvSpeed = Vec()
+    self.hero = nil
 
 end
 
@@ -26,25 +27,33 @@ function WaterPlane:Tick(deltaTime)
     uvOff = uvOff + self.uvSpeed * deltaTime
     self.matInst:SetUvOffset(uvOff)
 
-end
-
-function WaterPlane:OverlapBegin(this, other)
-
-    Log.Debug("OVERLAP!")
-
-    if (other:HasTag("Hero")) then
-        other:Kill()
-        Log.Debug("Water kill")
+    -- Hero is set on overlap
+    if (self.hero) then
+        -- Kill hero when the midpoint goes below water level
+        if (self.hero:GetWorldPosition().y < self:GetWorldPosition().y) then
+            self.hero:Kill()
+        end
     end
 
 end
+
+function WaterPlane:BeginOverlap(this, other)
+
+    if (other:HasTag("Hero")) then
+        self.hero = other
+    end
+
+end
+
+function WaterPlane:EndOverlap(this, other)
+
+    if (other == self.hero) then
+        self.hero = nil
+    end
+
+end
+
 
 function WaterPlane:OnCollision(this, other)
 
-    Log.Debug("ON COL!")
-
-    if (other:HasTag("Hero")) then
-        other:Kill()
-        Log.Debug("Water kill")
-    end
 end
