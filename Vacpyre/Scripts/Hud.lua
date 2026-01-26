@@ -13,6 +13,11 @@ function Hud:Create()
     self.jellyFlashTime = 0.0
     self.jellyOpacity = 0.5
 
+    self.fadeToBlackTime = 0.0
+    self.fadeToBlackDuration = 0.0
+    self.fadeFromBlackTime = 0.0
+    self.fadeFromBlackDuration = 0.0
+
 end
 
 function Hud:Start()
@@ -24,6 +29,8 @@ function Hud:Start()
 
     self.chargeBar = self:FindChild("ChargeBar", true)
     self.chargeFg = self:FindChild("ChargeFg", true)
+
+    self.blackQuad1 = self:FindChild("BlackQuad", true)
 
     self.jelly = self:FindChild("Jelly", true)
 
@@ -37,12 +44,18 @@ function Hud:Start()
         self.chargeBar:Attach(root2)
         self.chargeBar:SetAnchorMode(AnchorMode.Mid)
 
+        self.blackQuad2 = self.blackQuad1:Clone(false)
+        self.blackQuad2:Attach(root2)
+
         Engine.GetWorld(2):SetRootNode(root2)
     elseif (platform == "GameCube" or platform == "Wii") then
         self:SetScale(0.5, 0.5)
     end
 
     self.chargeBar:SetOpacityFloat(0.0)
+
+    self:SetBlackOpacity(1.0)
+    TimerManager.SetTimer(function() self:FadeFromBlack(0.5) end, 1.0)
 
 end
 
@@ -82,6 +95,24 @@ function Hud:Tick(deltaTime)
         opacity = opacity * self.jellyOpacity
         self.jelly:SetOpacityFloat(opacity)
     end
+
+    -- Update fade to/from black
+    local blackOpacity = 0.0
+    if (self.fadeFromBlackTime > 0.0) then
+        self.fadeFromBlackTime = self.fadeFromBlackTime - deltaTime
+        blackOpacity = Math.Clamp(self.fadeFromBlackTime / self.fadeFromBlackDuration, 0, 1)
+
+        Log.Debug("FADE FROM BLACK: " .. blackOpacity)
+
+        self:SetBlackOpacity(blackOpacity)
+    end
+
+    if (self.fadeToBlackTime > 0.0) then
+        self.fadeToBlackTime = self.fadeToBlackTime - deltaTime
+        blackOpacity = Math.Clamp(1.0 - self.fadeToBlackTime / self.fadeFromBlackDuration, 0, 1)
+        self:SetBlackOpacity(blackOpacity)
+    end
+
 end
 
 function Hud:OnDamage()
@@ -89,5 +120,30 @@ function Hud:OnDamage()
     self.jellyFlashTime = self.jellyFlashDuration
     self.jelly:SetVisible(true)
     self.jelly:SetOpacityFloat(0.0)
+
+end
+
+function Hud:FadeToBlack(dur)
+
+    self.fadeToBlackTime = dur
+    self.fadeToBlackDuration = dur
+
+end
+
+function Hud:FadeFromBlack(dur)
+
+    self.fadeFromBlackTime = dur
+    self.fadeFromBlackDuration = dur
+
+end
+
+function Hud:SetBlackOpacity(opacity)
+
+    self.blackQuad1:SetVisible(opacity > 0)
+    self.blackQuad1:SetOpacityFloat(opacity)
+    if (self.blackQuad2) then
+        self.blackQuad2:SetVisible(opacity > 0)
+        self.blackQuad2:SetOpacityFloat(opacity)
+    end
 
 end
