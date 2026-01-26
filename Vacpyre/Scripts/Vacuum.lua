@@ -19,6 +19,7 @@ function Vacuum:GatherProperties()
 
     return
     {
+        { name = "hero", type = DatumType.Node },
         { name = "suckPivot", type = DatumType.Node },
         { name = "suckParticle", type = DatumType.Node },
         { name = "blowParticle", type = DatumType.Node },
@@ -89,9 +90,19 @@ function Vacuum:Tick(deltaTime)
         local toCamera = camera:GetWorldPosition() - suckTarget:GetWorldPosition()
         local suckDir = toCamera:Normalize()
         local distance = toCamera:Length()
-        local forceMag = Math.MapClamped(distance, 0, 100.0, 100.0, 10.0)
-        local force = forceMag * suckDir
-        suckTarget:AddForce(force)
+
+        if (suckTarget:HasTag("Immobile")) then
+            -- For immobile targets move the player toward the target
+            self.hero.controller:SetGrounded(false)
+            local speed = Math.MapClamped(distance, 0, 20, 100.0, 40.0)
+            self.hero.controller:AddExternalVelocity(-suckDir * speed * deltaTime)
+        else
+            -- For mobile targets, add force to draw it toward the player
+            local forceMag = Math.MapClamped(distance, 0, 100.0, 100.0, 10.0)
+            local force = forceMag * suckDir
+
+            suckTarget:AddForce(force)
+        end
 
         self:SafetyDepenetration(suckTarget)
 

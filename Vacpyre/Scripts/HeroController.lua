@@ -363,4 +363,11 @@ end
 function HeroController:GetVelocity()
 
     return (self.extVelocity + self.moveVelocity)
+
+end
+
+function HeroController:AddExternalVelocity(vel)
+
+    self.extVelocity = self.extVelocity + vel
+
 end
