@@ -103,6 +103,14 @@ function Hero:UpdateDebug(deltaTime)
         teleCp = 8
     end
 
+    if (Input.IsGamepadDown(Gamepad.Select)) then
+        if (Input.IsGamepadPressed(Gamepad.Up)) then
+            teleCp = GameState.checkpoint + 1
+        elseif (Input.IsGamepadPressed(Gamepad.Down)) then
+            teleCp = GameState.checkpoint - 1
+        end
+    end
+
     if (teleCp >= 1) then
         local cpNode = self:GetRoot():FindChild("Checkpoint" .. teleCp)
 
@@ -110,11 +118,13 @@ function Hero:UpdateDebug(deltaTime)
             self:SetWorldPosition(cpNode:GetSpawnPosition())
             self:SetWorldRotation(cpNode:GetSpawnRotation())
             Log.Debug("spawn rot = " .. tostring(cpNode:GetSpawnRotation()))
+
+            GameState.checkpoint = teleCp
         end
     end
 
     if (Input.IsGamepadDown(Gamepad.Select)) then
-        if (Input.IsGamepadPressed(Gamepad.Down)) then
+        if (Input.IsGamepadPressed(Gamepad.Right)) then
             self.statsEnabled = not self.statsEnabled
             Renderer.EnableStatsOverlay(self.statsEnabled)
         end
