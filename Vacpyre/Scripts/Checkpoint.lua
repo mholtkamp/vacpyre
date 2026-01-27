@@ -19,13 +19,19 @@ end
 
 function Checkpoint:BeginOverlap(this, other)
 
-    -- TODO: Unload and Load zones always, not just on highest checkpoint index
-
     if (other:HasTag("Hero")) then
+
+        local level = self:GetRoot()
+        level:DisableAllZones()
+        level:EnableZone(self.checkpointIndex - 1, true)
+        level:EnableZone(self.checkpointIndex, true)
+        level:EnableZone(self.checkpointIndex + 1, true)
+
         if (GameState.checkpoint < self.checkpointIndex) then
             Log.Debug("New Checkpoint: " .. self.checkpointIndex)
             GameState.checkpoint = self.checkpointIndex
         end
+
     end
 
 end
