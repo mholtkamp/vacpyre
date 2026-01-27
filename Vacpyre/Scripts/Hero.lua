@@ -37,8 +37,8 @@ function Hero:Start()
     self.controller.enableControl = false
 
     self.hud:SetBlackOpacity(1.0)
-    TimerManager.SetTimer(function() self.hud:FadeFromBlack(0.5) end, 1.0)
-    TimerManager.SetTimer(function() self.controller.enableControl = true end, 1.0 + 0.5)
+    TimerManager.SetTimer(function() Engine.GarbageCollect(); self.hud:FadeFromBlack(0.5) end, 0.25)
+    TimerManager.SetTimer(function() self.controller.enableControl = true end, 0.25 + 0.5)
 end
 
 function Hero:Tick(deltaTime)
