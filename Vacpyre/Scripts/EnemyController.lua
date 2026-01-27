@@ -75,7 +75,7 @@ function EnemyController:Tick(deltaTime)
                 self.moveTimer = 1.0
                 self.moveDir = toSpawnPos:Normalize()
 
-                Renderer.AddDebugLine(self.collider:GetWorldPosition(), self.spawnPos, Vec(1,0,0,1), 1.0)
+                --Renderer.AddDebugLine(self.collider:GetWorldPosition(), self.spawnPos, Vec(1,0,0,1), 1.0)
             end
         end
     end

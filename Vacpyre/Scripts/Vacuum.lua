@@ -13,6 +13,8 @@ function Vacuum:Create()
     self.charge = 0.0
     self.chargeSpeed = 0.5
     self.suckRadius = 5.0
+    self.aimObjOffset = 2.5
+    self.timeSinceAim = 0.0
 end
 
 function Vacuum:GatherProperties()
@@ -39,6 +41,12 @@ function Vacuum:Tick(deltaTime)
     -- if (not Node.IsValid(self.suckedObject)) then
     --     self.suckedObject = nil
     -- end
+
+    if (self.aiming) then
+        self.timeSinceAim = 0.0
+    else
+        self.timeSinceAim = self.timeSinceAim + deltaTime
+    end
 
     local camera = self.world:GetActiveCamera()
     local suckTarget = nil
@@ -131,6 +139,11 @@ function Vacuum:Tick(deltaTime)
             targetOpacity = 0.35
         end
 
+        local suckPos = self:GetSuckedObjectPos(self.suckedObject)
+        local curPos = self.suckedObject:GetWorldPosition()
+        curPos = Math.Approach(curPos, suckPos, 8.0, deltaTime)
+        self.suckedObject:SetWorldPosition(curPos)
+
         local matInst = self.suckedObject.matInst
         local opacity = matInst:GetOpacity() 
         opacity = Math.Approach(opacity, targetOpacity, 3.0, deltaTime)
@@ -215,6 +228,22 @@ function Vacuum:EnableSuck(suck)
 
 end
 
+function Vacuum:GetSuckedObjectPos(obj)
+    local pos = nil
+    local bounds = obj:GetBounds()
+    local scale = obj:GetWorldScale().x
+
+    if (self.aiming) then
+        local camera = self.world:GetActiveCamera()
+        pos = (bounds.radius * scale + self.aimObjOffset) * camera:GetForwardVector() + camera:GetWorldPosition()
+    else
+        pos = bounds.radius * scale * self.suckPivot:GetForwardVector() + self.suckPivot:GetWorldPosition()
+    end
+
+    return pos
+end
+
+
 function Vacuum:SuckObject(obj)
 
     -- Cache it's original parent so we can attach it properly when shooting it back out
@@ -224,8 +253,7 @@ function Vacuum:SuckObject(obj)
     obj:SetCollisionMask(VacpyreCollision.Projectile | VacpyreCollision.Barrier)
     obj:SetCollisionGroup(VacpyreCollision.Sucked)
     obj:Attach(self.suckPivot)
-    local bounds = obj:GetBounds()
-    obj:SetPosition(Vec(0,0,-bounds.radius * obj:GetWorldScale().x))
+    obj:SetWorldPosition(self:GetSuckedObjectPos(obj))
     obj:SetRotation(Vec())
 
     -- Instantiate it's own material so we can make it transparent when aiming
@@ -264,7 +292,8 @@ function Vacuum:ReleaseSuckedObject(launchSpeed)
             self.suckedObject:SetWorldPosition(camera:GetWorldPosition())
         end
 
-        self.suckedObject:SetLinearVelocity(self.suckPivot:GetForwardVector() * launchSpeed)
+        local launchDir = (self.aiming or self.timeSinceAim < 0.1) and camera:GetForwardVector() or self.suckPivot:GetForwardVector()
+        self.suckedObject:SetLinearVelocity(launchDir * launchSpeed)
         self.suckedObject.lastBlowTime = Engine.GetElapsedTime()
         self.suckedObject.matInst:SetOpacity(1.0)
         self.suckedObject.matInst:SetBlendMode(BlendMode.Opaque)
