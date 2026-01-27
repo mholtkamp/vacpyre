@@ -112,4 +112,11 @@ function Hero:UpdateDebug(deltaTime)
             Log.Debug("spawn rot = " .. tostring(cpNode:GetSpawnRotation()))
         end
     end
+
+    if (Input.IsGamepadDown(Gamepad.Select)) then
+        if (Input.IsGamepadPressed(Gamepad.Down)) then
+            self.statsEnabled = not self.statsEnabled
+            Renderer.EnableStatsOverlay(self.statsEnabled)
+        end
+    end
 end
