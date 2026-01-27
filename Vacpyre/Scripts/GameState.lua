@@ -1,0 +1,4 @@
+GameState =
+{
+    checkpoint = 1
+}

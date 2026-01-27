@@ -8,12 +8,14 @@ function EnemyController:Create()
     self.hurtOnTouch = false
     self.handleMeshRotation = true
     self.approachDistance = 0.0
+    self.patrolRadius = 0.0
 
     -- State
     self.moveDir = Vec()
     self.moveTimer = 0.0
     self.heroNearby = false
     self.hero = nil
+    self.hasEverSeenHero = false
 end
 
 function EnemyController:GatherProperties()
@@ -27,6 +29,7 @@ function EnemyController:GatherProperties()
         { name = "hurtOnTouch", type = DatumType.Bool },
         { name = "handleMeshRotation", type = DatumType.Bool },
         { name = "approachDistance", type = DatumType.Float},
+        { name = "patrolRadius", type = DatumType.Float },
         { name = "deathParticle", type = DatumType.Asset},
     }
 end
@@ -36,6 +39,8 @@ function EnemyController:Start()
     self.enemy = self:GetParent()
     self.enemy.controller = self
     self.hero = self:GetRoot().hero
+
+    self.spawnPos = self.collider:GetWorldPosition()
 end
 
 function EnemyController:Tick(deltaTime)
@@ -62,6 +67,17 @@ function EnemyController:Tick(deltaTime)
             self.moveDir = Vector.Rotate(Vec(0,0,-1), Math.RandRange(0, 360.0), Vec(0, 1, 0))
         end
 
+        if (self.patrolRadius > 0 and not self.hasEverSeenHero) then
+            local toSpawnPos = self.spawnPos - self.collider:GetWorldPosition()
+            local spawnDist2 = toSpawnPos:LengthSquared()
+            local patrolRadius2 = self.patrolRadius * self.patrolRadius
+            if (spawnDist2 > patrolRadius2) then
+                self.moveTimer = 1.0
+                self.moveDir = toSpawnPos:Normalize()
+
+                Renderer.AddDebugLine(self.collider:GetWorldPosition(), self.spawnPos, Vec(1,0,0,1), 1.0)
+            end
+        end
     end
 
     local sweepRes = self.collider:SweepToWorldPosition(self.collider:GetWorldPosition() + self.moveDir * moveSpeed * deltaTime)
@@ -96,6 +112,10 @@ function EnemyController:Tick(deltaTime)
             local rayRes = self.world:RayTest(rayStart, rayEnd, colMask)
 
             self.lineOfSight = (rayRes.hitNode == self.hero)
+
+            if (self.lineOfSight) then
+                self.hasEverSeenHero = true
+            end
             --Renderer.AddDebugLine(rayStart, rayEnd, self.lineOfSight  and Vec(0,1,0,1) or Vec(1,0,0,1), 5.0)
         end
     end

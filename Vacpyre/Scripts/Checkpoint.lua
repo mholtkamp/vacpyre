@@ -1,6 +1,6 @@
-Checkpoint = {}
+Script.Require("GameState")
 
-Checkpoint.curCheckpoint = 1
+Checkpoint = {}
 
 function Checkpoint:Create()
 
@@ -22,10 +22,9 @@ function Checkpoint:BeginOverlap(this, other)
     -- TODO: Unload and Load zones always, not just on highest checkpoint index
 
     if (other:HasTag("Hero")) then
-
-        if (Checkpoint.curCheckpoint < self.checkpointIndex) then
+        if (GameState.checkpoint < self.checkpointIndex) then
             Log.Debug("New Checkpoint: " .. self.checkpointIndex)
-            Checkpoint.curCheckpoint = self.checkpointIndex
+            GameState.checkpoint = self.checkpointIndex
         end
     end
 

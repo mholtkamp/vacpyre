@@ -21,7 +21,7 @@ function Hero:Start()
 
     self.health = self.maxHealth
 
-    local checkpointIdx = Checkpoint.curCheckpoint
+    local checkpointIdx = GameState.checkpoint
     local checkpointName = "Checkpoint" .. checkpointIdx
     local checkpointNode = self:GetRoot():FindChild(checkpointName, false)
 
@@ -34,6 +34,11 @@ function Hero:Start()
         Log.Error("No checkpoint found!")
     end
 
+    self.controller.enableControl = false
+
+    self.hud:SetBlackOpacity(1.0)
+    TimerManager.SetTimer(function() self.hud:FadeFromBlack(0.5) end, 1.0)
+    TimerManager.SetTimer(function() self.controller.enableControl = true end, 1.0 + 0.5)
 end
 
 function Hero:Tick(deltaTime)
@@ -41,6 +46,8 @@ function Hero:Tick(deltaTime)
     if (Input.IsKeyPressed(Key.R) or Input.IsGamepadPressed(Gamepad.Y)) then
         self:Kill()
     end
+
+    --
 
     self:UpdateDebug(deltaTime)
 
@@ -65,6 +72,7 @@ function Hero:Kill()
     if (self.alive) then
         Log.Error("KILL")
         self.alive = false
+        self.controller.enableControl = false
 
         self.hud:FadeToBlack(0.5)
         TimerManager.SetTimer(function() Engine.GetWorld(1):LoadScene("SC_Cave") end, 1.0)

@@ -55,7 +55,6 @@ function Hud:Start()
     self.chargeBar:SetOpacityFloat(0.0)
 
     self:SetBlackOpacity(1.0)
-    TimerManager.SetTimer(function() self:FadeFromBlack(0.5) end, 1.0)
 
 end
 
@@ -101,8 +100,6 @@ function Hud:Tick(deltaTime)
     if (self.fadeFromBlackTime > 0.0) then
         self.fadeFromBlackTime = self.fadeFromBlackTime - deltaTime
         blackOpacity = Math.Clamp(self.fadeFromBlackTime / self.fadeFromBlackDuration, 0, 1)
-
-        Log.Debug("FADE FROM BLACK: " .. blackOpacity)
 
         self:SetBlackOpacity(blackOpacity)
     end
