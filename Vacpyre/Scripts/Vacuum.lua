@@ -36,7 +36,7 @@ function Vacuum:Start()
 end
 
 function Vacuum:Tick(deltaTime)
-    
+
     --if (self.suckedObject and not self.suckedObject:IsValid()) then
     -- if (not Node.IsValid(self.suckedObject)) then
     --     self.suckedObject = nil
@@ -70,14 +70,13 @@ function Vacuum:Tick(deltaTime)
     end
 
     -- Disallow sucking targets too soon after blowing
-    if (suckTarget and suckTarget.lastBlowTime) then
-        local timeSinceBlow = Engine.GetElapsedTime() - suckTarget.lastBlowTime
-        if (timeSinceBlow < 0.3) then
+    if (suckTarget and suckTarget.suckCooldownTimestamp) then
+        if (suckTarget.suckCooldownTimestamp > Engine.GetElapsedTime()) then
             suckTarget = nil
         end
     end
 
-    if (suckTarget and 
+    if (suckTarget and
         Vector.Distance(suckTarget:GetWorldPosition(), camera:GetWorldPosition()) < self.suckRadius and
         self:MustDropObject(suckTarget, true)) then
         suckTarget = nil
@@ -128,6 +127,7 @@ function Vacuum:Tick(deltaTime)
     if (self.suckedObject) then
         if (self:MustDropObject(self.suckedObject)) then
             self:ReleaseSuckedObject(0.0)
+            self.hero.controller.requireRelease = true
         end
     end
 
@@ -145,7 +145,7 @@ function Vacuum:Tick(deltaTime)
         self.suckedObject:SetWorldPosition(curPos)
 
         local matInst = self.suckedObject.matInst
-        local opacity = matInst:GetOpacity() 
+        local opacity = matInst:GetOpacity()
         opacity = Math.Approach(opacity, targetOpacity, 3.0, deltaTime)
         matInst:SetOpacity(opacity)
 
@@ -263,7 +263,7 @@ function Vacuum:SuckObject(obj)
     end
 
     obj:ConnectSignal("OnDestroy", self, function() self.suckedObject = nil; self.charge = 0; end)
-    
+
     obj.lastPos = obj:GetWorldPosition()
 
     self.charge = 0.0
@@ -294,7 +294,7 @@ function Vacuum:ReleaseSuckedObject(launchSpeed)
 
         local launchDir = (self.aiming or self.timeSinceAim < 0.1) and camera:GetForwardVector() or self.suckPivot:GetForwardVector()
         self.suckedObject:SetLinearVelocity(launchDir * launchSpeed)
-        self.suckedObject.lastBlowTime = Engine.GetElapsedTime()
+        self.suckedObject.suckCooldownTimestamp = Engine.GetElapsedTime() + 0.3
         self.suckedObject.matInst:SetOpacity(1.0)
         self.suckedObject.matInst:SetBlendMode(BlendMode.Opaque)
         self.suckedObject:DisconnectSignal("OnDestroy", self)
@@ -325,7 +325,7 @@ end
 
 function Vacuum:BeginOverlap(this, other)
 
-    if (self.sucking and 
+    if (self.sucking and
         not self.suckedObject and
         other:HasTag("Red") and
         other.lastSuckTime and

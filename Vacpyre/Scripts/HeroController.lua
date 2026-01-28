@@ -38,6 +38,7 @@ function HeroController:Create()
     self.moveVelocity = Vec()
     self.aiming = false
     self.inGameMenu = nil
+    self.requireRelease = false
 
 
 end
@@ -100,7 +101,6 @@ end
 function HeroController:Tick(deltaTime)
 
     self:UpdateInput(deltaTime)
-    self:UpdateSuck(deltaTime)
     self:UpdateJump(deltaTime)
     self:UpdateDrag(deltaTime)
     self:UpdateMovement(deltaTime)
@@ -168,6 +168,27 @@ function HeroController:UpdateInput(deltaTime)
         end
         self.lookVec = self.lookVec + gamepadLook
 
+        local suckDown =
+            Input.IsMouseDown(Mouse.Left) or
+            Input.IsGamepadDown(Gamepad.R1) or
+            Input.IsGamepadDown(Gamepad.R2)
+
+        if (self.requireRelease) then
+            if (suckDown) then
+                suckDown = false
+            else
+                self.requireRelease = false
+            end
+        end
+
+        if (self.vacuum) then
+            self.vacuum:EnableSuck(suckDown)
+        end
+
+        if (Input.IsKeyPressed(Key.E) or Input.IsGamepadPressed(Gamepad.B)) then
+            self.vacuum:ReleaseSuckedObject(0.0)
+            self.requireRelease = true
+        end
 
         if (Input.IsKeyPressed(Key.R) or Input.IsGamepadPressed(Gamepad.Y)) then
             self.hero:Kill()
@@ -190,20 +211,6 @@ function HeroController:UpdateInput(deltaTime)
         (Input.IsKeyPressed(Key.Escape) or Input.IsGamepadPressed(Gamepad.Start))) then
 
         self.inGameMenu:Close()
-    end
-end
-
-function HeroController:UpdateSuck(deltaTime)
-
-    local suckDown =
-        Input.IsKeyDown(Key.E) or
-        Input.IsMouseDown(Mouse.Left) or
-        Input.IsGamepadDown(Gamepad.R1) or
-        Input.IsGamepadDown(Gamepad.R2) or
-        Input.IsGamepadDown(Gamepad.B)
-
-    if (self.vacuum) then
-        self.vacuum:EnableSuck(suckDown)
     end
 end
 
