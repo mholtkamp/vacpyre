@@ -1,3 +1,5 @@
+Script.Require("GameState")
+
 MainMenuWidget = {}
 
 function MainMenuWidget:Create()
@@ -57,7 +59,7 @@ function MainMenuWidget:Tick(deltaTime)
         self.blackQuad:SetOpacityFloat(blackOpacity)
 
         if (blackOpacity >= 1.0) then
-            Log.Debug("LOAD LEVEL " .. self.levelName)
+            GameState.checkpoint = 1
             self.world:LoadScene( self.levelName)
         end
     end

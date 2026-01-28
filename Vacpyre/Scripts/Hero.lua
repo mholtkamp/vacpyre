@@ -11,6 +11,15 @@ function Hero:Create()
     self.hud = nil
     self.health = self.maxHealth
     self.alive = true
+    self.inGameMenu = nil
+end
+
+function Hero:GatherProperties()
+
+    return
+    {
+
+    }
 end
 
 function Hero:Start()
@@ -42,12 +51,6 @@ function Hero:Start()
 end
 
 function Hero:Tick(deltaTime)
-
-    if (Input.IsKeyPressed(Key.R) or Input.IsGamepadPressed(Gamepad.Y)) then
-        self:Kill()
-    end
-
-    --
 
     self:UpdateDebug(deltaTime)
 

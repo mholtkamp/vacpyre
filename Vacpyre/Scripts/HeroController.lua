@@ -26,6 +26,7 @@ function HeroController:Create()
     self.enableJump = true
     self.enableTankControls = false
     self.mouseSensitivity = 0.05
+    self.inGameMenuScene = nil
 
     -- State
     self.moveDir = Vec()
@@ -36,6 +37,8 @@ function HeroController:Create()
     self.extVelocity = Vec()
     self.moveVelocity = Vec()
     self.aiming = false
+    self.inGameMenu = nil
+
 
 end
 
@@ -59,6 +62,7 @@ function HeroController:GatherProperties()
         { name = "enableJump", type = DatumType.Bool },
         { name = "enableTankControls", type = DatumType.Bool },
         { name = "mouseSensitivity", type = DatumType.Float },
+        { name = "inGameMenuScene", type = DatumType.Asset },
     }
 
 end
@@ -80,6 +84,8 @@ function HeroController:Start()
     if (not self.camera) then
         self.camera = self.collider:FindChild("Camera", true)
     end
+
+    self.inGameMenu = self.inGameMenuScene:Instantiate()
 
 end
 
@@ -162,20 +168,38 @@ function HeroController:UpdateInput(deltaTime)
         end
         self.lookVec = self.lookVec + gamepadLook
 
+
+        if (Input.IsKeyPressed(Key.R) or Input.IsGamepadPressed(Gamepad.Y)) then
+            self.hero:Kill()
+        end
+
+        if (not self.inGameMenu:IsOpen() and
+            (Input.IsKeyPressed(Key.Escape) or Input.IsKeyPressed(Key.Enter) or Input.IsGamepadPressed(Gamepad.Start))) then
+
+            Log.Debug("OPEN MENU")
+
+            self.inGameMenu:Open(self)
+        end
     else
         self.moveDir = Vec()
         self.lookDelta = Vec()
     end
 
+    -- Always allow closing menu
+    if (self.inGameMenu:IsOpen() and
+        (Input.IsKeyPressed(Key.Escape) or Input.IsGamepadPressed(Gamepad.Start))) then
+
+        self.inGameMenu:Close()
+    end
 end
 
 function HeroController:UpdateSuck(deltaTime)
 
     local suckDown =
         Input.IsKeyDown(Key.E) or
-        Input.IsMouseDown(Mouse.Left) or 
-        Input.IsGamepadDown(Gamepad.R1) or 
-        Input.IsGamepadDown(Gamepad.R2) or 
+        Input.IsMouseDown(Mouse.Left) or
+        Input.IsGamepadDown(Gamepad.R1) or
+        Input.IsGamepadDown(Gamepad.R2) or
         Input.IsGamepadDown(Gamepad.B)
 
     if (self.vacuum) then
