@@ -70,6 +70,13 @@ function Hero:Damage(damage)
 
 end
 
+function Hero:Heal(health)
+
+    health = healh or self.maxHealth
+    self.health = health
+
+end
+
 function Hero:Kill()
 
     if (self.alive) then
@@ -106,7 +113,7 @@ function Hero:UpdateDebug(deltaTime)
         teleCp = 8
     end
 
-    if (Input.IsGamepadDown(Gamepad.Select)) then
+    if (Input.IsGamepadDown(Gamepad.Select) or Input.IsGamepadDown(Gamepad.Z)) then
         if (Input.IsGamepadPressed(Gamepad.Up)) then
             teleCp = GameState.checkpoint + 1
         elseif (Input.IsGamepadPressed(Gamepad.Down)) then
@@ -126,7 +133,7 @@ function Hero:UpdateDebug(deltaTime)
         end
     end
 
-    if (Input.IsGamepadDown(Gamepad.Select)) then
+    if (Input.IsGamepadDown(Gamepad.Select) or Input.IsGamepadDown(Gamepad.Z)) then
         if (Input.IsGamepadPressed(Gamepad.Right)) then
             self.statsEnabled = not self.statsEnabled
             Renderer.EnableStatsOverlay(self.statsEnabled)

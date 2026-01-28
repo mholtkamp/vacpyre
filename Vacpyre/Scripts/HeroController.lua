@@ -203,7 +203,7 @@ function HeroController:UpdateInput(deltaTime)
         end
     else
         self.moveDir = Vec()
-        self.lookDelta = Vec()
+        self.lookVec = Vec()
     end
 
     -- Always allow closing menu

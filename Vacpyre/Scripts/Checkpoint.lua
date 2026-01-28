@@ -32,6 +32,7 @@ function Checkpoint:BeginOverlap(this, other)
             GameState.checkpoint = self.checkpointIndex
         end
 
+        other:Heal()
     end
 
 end
@@ -44,7 +45,7 @@ end
 
 function Checkpoint:GetSpawnRotation()
 
-    -- Woops, I made all the boxes facing sideways 
+    -- Woops, I made all the boxes facing sideways
     local spawnRot = self:GetWorldRotation()
     spawnRot.y = spawnRot.y - 90.0
     return spawnRot
