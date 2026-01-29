@@ -2,6 +2,8 @@ InGameMenu = {}
 
 function InGameMenu:Create()
 
+    self.timeOpen = 0.0
+
 end
 
 function InGameMenu:GatherProperties()

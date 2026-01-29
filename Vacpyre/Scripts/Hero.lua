@@ -26,6 +26,8 @@ end
 
 function Hero:Start()
 
+    GameState.hero = self
+
     -- Assign a global hero reference on the root node
     self:GetRoot().hero = self
     self.hud = self:GetRoot():FindChild("Hud", true)
