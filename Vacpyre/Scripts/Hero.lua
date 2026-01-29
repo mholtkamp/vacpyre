@@ -6,6 +6,7 @@ function Hero:Create()
 
     -- Props
     self.maxHealth = 100
+    self.killY = -110.0
 
     -- State
     self.hud = nil
@@ -18,8 +19,9 @@ function Hero:GatherProperties()
 
     return
     {
-
+        { name = "killY", type = DatumType.Float },
     }
+
 end
 
 function Hero:Start()
@@ -54,6 +56,10 @@ function Hero:Tick(deltaTime)
 
     self:UpdateDebug(deltaTime)
 
+    local pos = self:GetWorldPosition()
+    if (pos.y < self.killY) then
+        self:Kill()
+    end
 end
 
 function Hero:Damage(damage)
