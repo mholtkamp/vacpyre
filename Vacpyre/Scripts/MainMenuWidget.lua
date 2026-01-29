@@ -28,6 +28,10 @@ function MainMenuWidget:Start()
     self.scrollQuad:SetVertexColors(Vec(1,0,0,1), Vec(1,0,0,1), Vec(0,0,0,0), Vec(0,0,0,0))
     self.blackQuad:SetVisible(false)
 
+    Input.LockCursor(false)
+    Input.TrapCursor(false)
+    Input.ShowCursor(true)
+
 end
 
 function MainMenuWidget:Tick(deltaTime)
@@ -45,7 +49,7 @@ function MainMenuWidget:Tick(deltaTime)
 
     -- Transition to game when user presses start
     if (not self.fading and
-        (Input.IsKeyPressed(Key.Enter) or Input.IsGamepadPressed(Gamepad.Start))) then
+        (Input.IsKeyPressed(Key.Enter) or Input.IsKeyPressed(Key.Space) or Input.IsGamepadPressed(Gamepad.Start))) then
 
         self.fading = true
         self.fadeTime = self.fadeDuration

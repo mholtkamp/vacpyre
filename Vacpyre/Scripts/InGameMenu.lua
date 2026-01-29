@@ -71,6 +71,10 @@ function InGameMenu:Open(controller)
     self.controller.enableControl = false
     self:Attach(self.controller:GetRoot())
 
+    Input.LockCursor(false)
+    Input.TrapCursor(false)
+    Input.ShowCursor(true)
+
     self.timeOpen = 0.0
 
 end
@@ -83,6 +87,10 @@ function InGameMenu:Close()
 
     self.controller.enableControl = true
     self:Detach()
+
+    Input.LockCursor(true)
+    Input.TrapCursor(true)
+    Input.ShowCursor(false)
 
 end
 
