@@ -23,6 +23,6 @@ function EndGameTrigger:BeginOverlap(this, other)
     end
 
     TimerManager.SetTimer(showWidget, 1.5)
-    TimerManager.SetTimer(gotoMenu, 5.0)
+    TimerManager.SetTimer(gotoMenu, 7.0)
 
 end
