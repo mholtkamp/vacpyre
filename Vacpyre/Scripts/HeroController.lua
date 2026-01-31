@@ -111,6 +111,19 @@ end
 
 function HeroController:UpdateInput(deltaTime)
 
+    -- Motion control debug
+    if (false) then
+        local gyro = Input.GetGamepadGyro(1)
+        Log.Debug("gyro = " .. tostring(gyro))
+
+        local accel = Input.GetGamepadAcceleration(1)
+        Log.Warning("accel = " .. tostring(accel))
+
+        local orientation = Input.GetGamepadOrientation(1)
+        Log.Error("orient = " .. tostring(orientation))
+    end
+
+
     if (self.enableControl) then
 
         self.aiming = Input.IsGamepadDown(Gamepad.L1) or Input.IsGamepadDown(Gamepad.L2) or Input.IsMouseDown(Mouse.Right)
