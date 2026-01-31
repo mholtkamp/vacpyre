@@ -17,6 +17,8 @@ function Level:Start()
                 Log.Debug("Found zone: " .. node:GetName())
                 self:RegisterZone(node, node.zoneIdx)
             end
+
+            return true
         end
     )
 
