@@ -42,7 +42,7 @@ function Level:Start()
     self:EnableZone(GameState.checkpoint, true)
     self:EnableZone(GameState.checkpoint + 1, true)
 
-        local platform = Engine.GetPlatform()
+    local platform = Engine.GetPlatform()
     local isConsole = platform == "GameCube" or
                       platform == "Wii" or
                       platform == "3DS"
@@ -64,7 +64,13 @@ function Level:Start()
     end
 
     self.songAlpha = GameState.checkpoint >= self.musicShiftCp and 1.0 or 0.0
-    Log.Debug("SONG ALPHA = " .. tostring(self.songAlpha))
+    
+    -- On 3DS, disable fog, because im hitting some weird flickering issues...
+    if (Engine.GetPlatform() == "3DS") then
+        local fog = self.world:GetFog()
+        fog.enable = false
+        self.world:SetFog(fog)
+    end
 end
 
 function Level:Stop()
