@@ -8,6 +8,7 @@ function MainMenuWidget:Create()
     self.scrollQuad = nil
     self.scrollSpeed = 0.1
     self.fadeDuration = 1.0
+    self.song = nil
 end
 
 function MainMenuWidget:GatherProperties()
@@ -31,6 +32,26 @@ function MainMenuWidget:Start()
     Input.LockCursor(false)
     Input.TrapCursor(false)
     Input.ShowCursor(true)
+
+    local platform = Engine.GetPlatform()
+    local isConsole = platform == "GameCube" or
+                      platform == "Wii" or
+                      platform == "3DS"
+
+    if (isConsole) then
+        self.song = LoadAsset("SW_Song2_LQ")
+    else
+        self.song = LoadAsset("SW_Song2_HQ")
+    end
+
+    Audio.StopAllSounds()
+    Audio.PlaySound2D(self.song, 1, 1, 0, true)
+
+end
+
+function MainMenuWidget:Stop()
+
+    Audio.StopAllSounds()
 
 end
 
@@ -67,5 +88,9 @@ function MainMenuWidget:Tick(deltaTime)
             self.world:LoadScene( self.levelName)
         end
     end
+
+    -- Fade in sound
+    local vol =  Math.Clamp((self.time) * 0.25, 0, 1)
+    Audio.UpdateSound(self.song, vol)
 
 end
