@@ -43,6 +43,7 @@ function Hud:Start()
         root2:SetRatios(0,0,1,1)
         self.chargeBar:Attach(root2)
         self.chargeBar:SetAnchorMode(AnchorMode.Mid)
+        self.chargeBar:SetScale(0.5, 0.5)
 
         self.blackQuad2 = self.blackQuad1:Clone(false)
         self.blackQuad2:Attach(root2)
