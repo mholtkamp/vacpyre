@@ -26,12 +26,16 @@ function Vacuum:GatherProperties()
         { name = "suckParticle", type = DatumType.Node },
         { name = "blowParticle", type = DatumType.Node },
         { name = "chargeSpeed", type = DatumType.Float },
+        { name = "suckAudio", type = DatumType.Node},
+        { name = "blowAudio", type = DatumType.Node},
     }
 
 end
 
 function Vacuum:Start()
 
+    self.suckAudio:SetVolume(0.0)
+    self.suckAudio:PlayAudio()
 
 end
 
@@ -173,6 +177,13 @@ function Vacuum:Tick(deltaTime)
     -- if (self.suckedObject) then
     --     self:SafetyDepenetration(self.suckedObject)
     -- end
+
+    -- Adjust suck audio
+    local targetSuckVol = (self.sucking and not self.suckedObject) and 1 or 0
+    local suckVol = self.suckAudio:GetVolume()
+    suckVol = Math.Approach(suckVol, targetSuckVol, 3.0, deltaTime)
+    self.suckAudio:SetVolume(suckVol)
+
 end
 
 function Vacuum:SafetyDepenetration(obj)
@@ -301,6 +312,11 @@ function Vacuum:ReleaseSuckedObject(launchSpeed)
 
         self.suckedObject.lastPos = self.suckedObject:GetWorldPosition()
         self.lastBlownObject = self.suckedObject
+
+        if (launchSpeed > 0.0) then
+            self.blowAudio:ResetAudio()
+            self.blowAudio:PlayAudio()
+        end
 
     end
 

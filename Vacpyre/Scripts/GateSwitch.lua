@@ -13,6 +13,7 @@ function GateSwitch:GatherProperties()
     {
         { name = "gate", type = DatumType.Node },
         { name = "light", type = DatumType.Node},
+        { name = "activationSound", type = DatumType.Asset},
     }
 end
 
@@ -34,6 +35,10 @@ function GateSwitch:OnCollision(this, other)
         self.gate:Open()
         self.light:SetVisible(false)
         self.activated = true
+
+        if (self.activationSound) then
+            Audio.PlaySound2D(self.activationSound)
+        end
     end
 
 end

@@ -41,6 +41,9 @@ function EnemyController:Start()
     self.hero = self:GetRoot().hero
 
     self.spawnPos = self.collider:GetWorldPosition()
+
+    self.detectSound = LoadAsset("SW_Detect")
+    self.poofSound = LoadAsset("SW_Poof")
 end
 
 function EnemyController:Tick(deltaTime)
@@ -111,7 +114,12 @@ function EnemyController:Tick(deltaTime)
             local colMask = (VacpyreCollision.Environment | VacpyreCollision.Hero)
             local rayRes = self.world:RayTest(rayStart, rayEnd, colMask)
 
+            local prevLos = self.lineOfSight
             self.lineOfSight = (rayRes.hitNode == self.hero)
+
+            if (not prevLos and self.lineOfSight) then
+                Audio.PlaySound3D(self.detectSound, self.collider:GetWorldPosition(), 10, 50)
+            end
 
             if (self.lineOfSight) then
                 self.hasEverSeenHero = true
@@ -128,6 +136,7 @@ function EnemyController:OnCollision(this, other)
         other:GetLinearVelocity():Length() > 5.0) then
 
         self.world:SpawnParticle(self.deathParticle, self.enemy:GetWorldPosition())
+        Audio.PlaySound3D(self.poofSound, self.enemy:GetWorldPosition(), 10, 50)
         self.enemy:Doom()
     end
 end

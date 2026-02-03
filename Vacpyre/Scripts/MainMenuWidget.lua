@@ -20,6 +20,7 @@ function MainMenuWidget:GatherProperties()
         { name = "startText", type = DatumType.Node },
         { name = "blackQuad", type = DatumType.Node },
         { name = "levelName", type = DatumType.String },
+        { name = "dingSound", type = DatumType.Asset },
     }
 
 end
@@ -75,6 +76,11 @@ function MainMenuWidget:Tick(deltaTime)
         self.fading = true
         self.fadeTime = self.fadeDuration
         self.blackQuad:SetVisible(true)
+
+        if (self.dingSound) then
+            Audio.PlaySound2D(self.dingSound)
+        end 
+
     end
 
     -- If we are fading, then begin showing the black quad

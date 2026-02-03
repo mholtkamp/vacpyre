@@ -24,6 +24,7 @@ end
 
 function Projectile:Start()
 
+    self.hitSound = LoadAsset("SW_Hit")
 end
 
 function Projectile:Launch(dir)
@@ -48,6 +49,8 @@ function Projectile:OnCollision(this, other, impactPos, impactNormal)
 
     if (other:HasTag("Hero")) then
         other:Damage(self.damage)
+
+        Audio.PlaySound2D(self.hitSound) 
     end
 
     if (self.impactParticle) then
