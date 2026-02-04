@@ -46,7 +46,10 @@ function MainMenuWidget:Start()
     end
 
     Audio.StopAllSounds()
-    Audio.PlaySound2D(self.song, 1, 1, 0, true)
+
+    if (self.song) then
+        Audio.PlaySound2D(self.song, 1, 1, 0, true)
+    end
 
 end
 
@@ -79,7 +82,7 @@ function MainMenuWidget:Tick(deltaTime)
 
         if (self.dingSound) then
             Audio.PlaySound2D(self.dingSound)
-        end 
+        end
 
     end
 
@@ -95,8 +98,10 @@ function MainMenuWidget:Tick(deltaTime)
         end
     end
 
-    -- Fade in sound
-    local vol =  Math.Clamp((self.time) * 0.25, 0, 1)
-    Audio.UpdateSound(self.song, vol)
+    if (self.song) then
+        -- Fade in sound
+        local vol =  Math.Clamp((self.time) * 0.25, 0, 1)
+        Audio.UpdateSound(self.song, vol)
+    end
 
 end

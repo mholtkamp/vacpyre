@@ -210,8 +210,6 @@ function HeroController:UpdateInput(deltaTime)
         if (not self.inGameMenu:IsOpen() and
             (Input.IsKeyPressed(Key.Escape) or Input.IsKeyPressed(Key.Enter) or Input.IsGamepadPressed(Gamepad.Start))) then
 
-            Log.Debug("OPEN MENU")
-
             self.inGameMenu:Open(self)
         end
     else

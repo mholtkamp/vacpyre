@@ -62,6 +62,7 @@ function Hero:Tick(deltaTime)
     if (pos.y < self.killY) then
         self:Kill()
     end
+
 end
 
 function Hero:Damage(damage)
@@ -88,7 +89,6 @@ end
 function Hero:Kill()
 
     if (self.alive) then
-        Log.Error("KILL")
         self.alive = false
         self.controller.enableControl = false
 
@@ -135,7 +135,6 @@ function Hero:UpdateDebug(deltaTime)
         if (cpNode) then
             self:SetWorldPosition(cpNode:GetSpawnPosition())
             self:SetWorldRotation(cpNode:GetSpawnRotation())
-            Log.Debug("spawn rot = " .. tostring(cpNode:GetSpawnRotation()))
 
             GameState.checkpoint = teleCp
         end
@@ -144,7 +143,10 @@ function Hero:UpdateDebug(deltaTime)
     if (Input.IsGamepadDown(Gamepad.Select) or Input.IsGamepadDown(Gamepad.Z)) then
         if (Input.IsGamepadPressed(Gamepad.Right)) then
             self.statsEnabled = not self.statsEnabled
-            Renderer.EnableStatsOverlay(self.statsEnabled)
+            Renderer.EnableStatsOverlay(self.statsEnabled, "Performance")
+        elseif (Input.IsGamepadPressed(Gamepad.Left)) then
+            self.statsEnabled = not self.statsEnabled
+            Renderer.EnableStatsOverlay(self.statsEnabled, "Memory")
         end
     end
 end

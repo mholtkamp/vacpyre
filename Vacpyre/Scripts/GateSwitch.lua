@@ -30,8 +30,6 @@ function GateSwitch:OnCollision(this, other)
     if (not self.activated and
         other:HasTag("Red")) then
 
-        Log.Debug("SWITCH HIT!")
-
         self.gate:Open()
         self.light:SetVisible(false)
         self.activated = true

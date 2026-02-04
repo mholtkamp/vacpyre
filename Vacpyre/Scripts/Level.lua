@@ -57,14 +57,14 @@ function Level:Start()
     end
 
     -- Don't restart songs after dying
-    if (not Audio.IsSoundPlaying(self.bgm1)) then
+    if (self.bgm1 and (not Audio.IsSoundPlaying(self.bgm1))) then
         local volume1 = (GameState.checkpoint >= self.musicShiftCp) and 0.0 or 1.0
         Audio.PlaySound2D(self.bgm1, volume1, 1, 1, true)
         Audio.PlaySound2D(self.bgm2, 1.0 - volume1, 1, 1, true)
     end
 
     self.songAlpha = GameState.checkpoint >= self.musicShiftCp and 1.0 or 0.0
-    
+
     -- On 3DS, disable fog, because im hitting some weird flickering issues...
     if (Engine.GetPlatform() == "3DS") then
         local fog = self.world:GetFog()
@@ -113,9 +113,11 @@ function Level:Tick(deltaTime)
         targetAlpha = 1.0
     end
 
-    self.songAlpha = Math.Approach(self.songAlpha, targetAlpha, 0.5, deltaTime)
+    if (self.bgm1) then
+        self.songAlpha = Math.Approach(self.songAlpha, targetAlpha, 0.5, deltaTime)
 
-    Audio.UpdateSound(self.bgm1, 1.0 - self.songAlpha, 1.0, 1)
-    Audio.UpdateSound(self.bgm2, self.songAlpha, 1.0, 1)
+        Audio.UpdateSound(self.bgm1, 1.0 - self.songAlpha, 1.0, 1)
+        Audio.UpdateSound(self.bgm2, self.songAlpha, 1.0, 1)
+    end
 
 end
